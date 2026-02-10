@@ -409,15 +409,28 @@ class BankingAgent {
       const data = await response.json();
       console.log('OTP API Response data:', data);
       
+      // Handle different response formats
       if (data.status === 'success' && data.otp) {
         return {
           success: true,
           otp: data.otp
         };
+      } else if (data.otp) {
+        // If OTP exists but status is missing, still accept it
+        return {
+          success: true,
+          otp: data.otp
+        };
+      } else if (data.message && data.message.includes('OTP sent successfully')) {
+        // If message says success but no OTP in response, this is a configuration issue
+        return {
+          success: false,
+          error: 'OTP sent successfully but OTP value not found in response. Please check API response format.'
+        };
       } else {
         return {
           success: false,
-          error: data.message || 'OTP trigger failed'
+          error: data.message || 'OTP trigger failed - invalid response format'
         };
       }
     } catch (error) {
