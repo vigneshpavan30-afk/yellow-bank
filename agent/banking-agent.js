@@ -352,15 +352,17 @@ class BankingAgent {
           otpValue: otpResult.otp // For testing purposes
         };
       } else {
+        console.error('OTP trigger failed:', otpResult.error);
         return {
-          message: "I'm experiencing a technical issue. Please try again in a moment, or contact our support team.",
+          message: `I'm experiencing a technical issue: ${otpResult.error}. Please check if the backend API is accessible at ${this.apiBaseUrl}`,
           action: 'error',
           nextStep: 'collecting_dob'
         };
       }
     } catch (error) {
+      console.error('OTP trigger exception:', error);
       return {
-        message: "I'm experiencing a technical issue. Please try again in a moment, or contact our support team.",
+        message: `I'm experiencing a technical issue: ${error.message}. Please check if the backend API is accessible at ${this.apiBaseUrl}`,
         action: 'error',
         nextStep: 'collecting_dob'
       };
