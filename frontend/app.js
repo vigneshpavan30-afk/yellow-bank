@@ -343,30 +343,92 @@ function showLoanDetails(details) {
     const container = document.getElementById('loanDetailsContainer');
     const card = document.getElementById('loanDetailsCard');
     
+    // Format currency values
+    const formatCurrency = (value) => {
+        if (!value || value === 'N/A') return 'N/A';
+        if (typeof value === 'number') {
+            return '₹' + value.toLocaleString('en-IN');
+        }
+        const num = parseFloat(value);
+        if (isNaN(num)) return value;
+        return '₹' + num.toLocaleString('en-IN');
+    };
+    
+    // Format percentage
+    const formatPercent = (value) => {
+        if (!value || value === 'N/A') return 'N/A';
+        if (typeof value === 'number') {
+            return value + '%';
+        }
+        const num = parseFloat(value);
+        if (isNaN(num)) return value;
+        return num + '%';
+    };
+    
     card.innerHTML = `
         <div class="detail-item">
-            <label>Account ID</label>
-            <value>${details.account_id}</value>
+            <label>Account Number</label>
+            <value>${details.account_id || details.loan_account_id || 'N/A'}</value>
+        </div>
+        <div class="detail-item">
+            <label>Loan Type</label>
+            <value>${details.type_of_loan || 'N/A'}</value>
         </div>
         <div class="detail-item">
             <label>Tenure</label>
-            <value>${details.tenure}</value>
+            <value>${details.tenure || 'N/A'}</value>
+        </div>
+        <div class="detail-item">
+            <label>Loan Amount</label>
+            <value>${formatCurrency(details.loan_amount || details.principal_amount)}</value>
         </div>
         <div class="detail-item">
             <label>Interest Rate</label>
-            <value>${details.interest_rate}%</value>
+            <value>${formatPercent(details.interest_rate)}</value>
         </div>
         <div class="detail-item">
             <label>Principal Pending</label>
-            <value>₹${details.principal_pending}</value>
+            <value>${formatCurrency(details.principal_pending)}</value>
         </div>
         <div class="detail-item">
             <label>Interest Pending</label>
-            <value>₹${details.interest_pending}</value>
+            <value>${formatCurrency(details.interest_pending)}</value>
+        </div>
+        <div class="detail-item">
+            <label>Outstanding Balance</label>
+            <value>${formatCurrency(details.outstanding_balance)}</value>
+        </div>
+        <div class="detail-item">
+            <label>EMI Amount</label>
+            <value>${formatCurrency(details.emi_amount)}</value>
+        </div>
+        <div class="detail-item">
+            <label>Total Paid</label>
+            <value>${formatCurrency(details.total_paid)}</value>
+        </div>
+        <div class="detail-item">
+            <label>Disbursement Date</label>
+            <value>${details.disbursement_date || 'N/A'}</value>
+        </div>
+        <div class="detail-item">
+            <label>Maturity Date</label>
+            <value>${details.maturity_date || 'N/A'}</value>
+        </div>
+        <div class="detail-item">
+            <label>Next EMI Date</label>
+            <value>${details.next_emi_date || 'N/A'}</value>
+        </div>
+        <div class="detail-item">
+            <label>Last Payment Date</label>
+            <value>${details.last_payment_date || 'N/A'}</value>
         </div>
         <div class="detail-item">
             <label>Nominee</label>
-            <value>${details.nominee}</value>
+            <value>${details.nominee || 'N/A'}</value>
+        </div>
+        <div class="detail-item">
+            <label>Status</label>
+            <value>${details.status || 'Active'}</value>
         </div>
     `;
     
