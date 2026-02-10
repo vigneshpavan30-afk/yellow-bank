@@ -38,6 +38,17 @@ async function sendMessage() {
     const message = input.value.trim();
     
     if (!message) return;
+
+    const lower = message.toLowerCase();
+
+    // Handle restart command locally
+    if (lower === 'restart' || lower === 'reset') {
+        // Add user message
+        addMessage('user', message);
+        input.value = '';
+        await resetConversation();
+        return;
+    }
     
     // Hide welcome message
     document.getElementById('welcomeMessage').style.display = 'none';
@@ -291,6 +302,52 @@ function redirectToCSAT() {
 function scrollToBottom() {
     const container = document.getElementById('chatContainer');
     container.scrollTop = container.scrollHeight;
+}
+
+// Reset conversation (clear UI + reset agent on server)
+async function resetConversation() {
+    try {
+        // Call backend to reset agent state
+        await fetch(`${AGENT_API_URL}/reset`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+    } catch (error) {
+        // Even if backend reset fails, still clear UI for user
+        console.error('Error resetting agent:', error);
+    }
+
+    // Reset local state
+    agentState = {
+        currentStep: 'idle',
+        phoneNumber: null,
+        dob: null,
+        otpValue: null,
+        loanAccounts: [],
+        selectedAccountId: null,
+        loanDetails: null
+    };
+
+    // Clear messages
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.innerHTML = '';
+
+    // Hide loan sections
+    document.getElementById('loanAccountsContainer').style.display = 'none';
+    document.getElementById('loanDetailsContainer').style.display = 'none';
+
+    // Clear quick actions
+    document.getElementById('quickActions').innerHTML = '';
+
+    // Show welcome message again
+    document.getElementById('welcomeMessage').style.display = 'block';
+
+    // Add system message
+    addMessage('agent', 'Conversation restarted. How can I help you?');
+
+    scrollToBottom();
 }
 
 // Show welcome message

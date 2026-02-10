@@ -199,6 +199,84 @@ class BankingAgent {
       };
     }
 
+    // Extract date components
+    const day = parseInt(dateMatch[1], 10);
+    const month = parseInt(dateMatch[2], 10);
+    const year = parseInt(dateMatch[3], 10); // Fixed: was dateMatch[4], should be dateMatch[3]
+
+    // Validate date components
+    if (month < 1 || month > 12) {
+      return {
+        message: "Invalid date. Month must be between 01 and 12. Please provide your date of birth in DD/MM/YYYY or DD-MM-YYYY format.",
+        action: 'retry_dob',
+        nextStep: 'collecting_dob'
+      };
+    }
+
+    if (day < 1 || day > 31) {
+      return {
+        message: "Invalid date. Day must be between 01 and 31. Please provide your date of birth in DD/MM/YYYY or DD-MM-YYYY format.",
+        action: 'retry_dob',
+        nextStep: 'collecting_dob'
+      };
+    }
+
+    // Check if date is valid (handles leap years, different month lengths)
+    // Use local date to properly validate
+    const date = new Date(year, month - 1, day);
+    const isValidDate = date.getFullYear() === year && 
+                        date.getMonth() === (month - 1) && 
+                        date.getDate() === day;
+    
+    if (!isValidDate) {
+      return {
+        message: "Invalid date. Please provide a valid date of birth in DD/MM/YYYY or DD-MM-YYYY format (e.g., 15/01/1990).",
+        action: 'retry_dob',
+        nextStep: 'collecting_dob'
+      };
+    }
+
+    // Check if date is in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    if (date > today) {
+      return {
+        message: "Invalid date. Date of birth cannot be in the future. Please provide a valid date of birth.",
+        action: 'retry_dob',
+        nextStep: 'collecting_dob'
+      };
+    }
+
+    // Check if date is too old (reasonable age limit, e.g., 150 years)
+    const minYear = today.getFullYear() - 150;
+    if (year < minYear) {
+      return {
+        message: "Invalid date. Please provide a valid date of birth.",
+        action: 'retry_dob',
+        nextStep: 'collecting_dob'
+      };
+    }
+
+    // Check if person is too young (e.g., must be at least 18 years old for banking)
+    // Calculate age more accurately (accounting for whether birthday has passed)
+    let age = today.getFullYear() - year;
+    const monthDiff = today.getMonth() - (month - 1);
+    const dayDiff = today.getDate() - day;
+    
+    // If birthday hasn't occurred this year, subtract 1 from age
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+    
+    if (age < 18) {
+      return {
+        message: "You must be at least 18 years old to access banking services. Please provide a valid date of birth.",
+        action: 'retry_dob',
+        nextStep: 'collecting_dob'
+      };
+    }
+
     this.state.dob = message;
     this.state.currentStep = 'triggering_otp';
     
