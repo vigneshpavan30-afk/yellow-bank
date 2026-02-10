@@ -372,7 +372,7 @@ class BankingAgent {
    */
   async triggerOTP() {
     try {
-      const apiKey = process.env.YB_API_KEY || 'AIzaSyC-nRiKZIbOa8iNoPfkePqiSnE8mAlChiY';
+      const apiKey = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
       const url = `${this.apiBaseUrl}/trigger-otp`;
       
       console.log('Triggering OTP:', { url, phoneNumber: this.state.phoneNumber, dob: this.state.dob });

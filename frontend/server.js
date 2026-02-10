@@ -10,7 +10,7 @@ const path = require('path');
 const BankingAgent = require('../agent/banking-agent');
 
 const PORT = 3002;
-const API_KEY = process.env.YB_API_KEY || 'AIzaSyC-nRiKZIbOa8iNoPfkePqiSnE8mAlChiY';
+const API_KEY = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
 
 // Set environment variables BEFORE creating agent
 process.env.YB_API_KEY = API_KEY;

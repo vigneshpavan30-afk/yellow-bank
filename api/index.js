@@ -23,7 +23,7 @@ global.Headers = global.Headers || (fetch.Headers || (() => {}));
 
 const BankingAgent = require('../agent/banking-agent');
 
-const API_KEY = process.env.YB_API_KEY || 'AIzaSyC-nRiKZIbOa8iNoPfkePqiSnE8mAlChiY';
+const API_KEY = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
 // Use environment variable or default to Beeceptor URL for production
 // For local development, this should be set to http://localhost:3001
 const API_BASE_URL = process.env.API_BASE_URL || 'https://yellow-bank-api.free.beeceptor.com';
