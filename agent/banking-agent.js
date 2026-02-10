@@ -567,8 +567,18 @@ class BankingAgent {
         }
       });
 
+      if (!response.ok) {
+        console.error('API request failed:', response.status, response.statusText);
+        return {
+          success: false,
+          error: `API request failed: ${response.status} ${response.statusText}`
+        };
+      }
+      
       const rawData = await response.json();
       console.log('Raw API response:', JSON.stringify(rawData, null, 2));
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       // Apply token optimization projection
       const projectedData = this.projectLoanAccounts(rawData);
@@ -577,12 +587,14 @@ class BankingAgent {
       
       if (!projectedData.accounts || projectedData.accounts.length === 0) {
         console.error('No accounts found in projected data!');
+        console.error('Raw data structure:', Object.keys(rawData || {}));
         return {
           success: false,
           error: 'No loan accounts found'
         };
       }
       
+      console.log('Returning accounts:', projectedData.accounts.length, 'items');
       return {
         success: true,
         accounts: projectedData.accounts

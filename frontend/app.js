@@ -124,8 +124,17 @@ function handleAgentResponse(response) {
     }
     
     // Handle different response types
-    if (response.action === 'show_accounts' && response.accounts) {
-        showLoanAccounts(response.accounts);
+    if (response.action === 'show_accounts') {
+        console.log('show_accounts action received:', response);
+        console.log('Accounts array:', response.accounts);
+        console.log('Accounts length:', response.accounts ? response.accounts.length : 0);
+        
+        if (response.accounts && response.accounts.length > 0) {
+            showLoanAccounts(response.accounts);
+        } else {
+            console.error('No accounts in response or empty array!');
+            addMessage('agent', 'No loan accounts found. Please contact support.');
+        }
     }
     
     if (response.action === 'show_details' && response.details) {
@@ -183,25 +192,47 @@ function showOTP(otp) {
 
 // Show loan accounts
 function showLoanAccounts(accounts) {
+    console.log('showLoanAccounts called with:', accounts);
+    console.log('Accounts count:', accounts ? accounts.length : 0);
+    
+    if (!accounts || accounts.length === 0) {
+        console.error('showLoanAccounts: No accounts provided!');
+        return;
+    }
+    
     const container = document.getElementById('loanAccountsContainer');
     const grid = document.getElementById('loanAccountsGrid');
+    
+    if (!container || !grid) {
+        console.error('showLoanAccounts: Container or grid not found!');
+        return;
+    }
     
     grid.innerHTML = '';
     
     accounts.forEach((account, index) => {
+        console.log(`Processing account ${index}:`, account);
+        
+        if (!account.loan_account_id) {
+            console.warn(`Skipping account ${index} - missing loan_account_id:`, account);
+            return;
+        }
+        
         const card = document.createElement('div');
         card.className = 'loan-account-card';
         card.onclick = () => selectAccount(account.loan_account_id);
         
         card.innerHTML = `
-            <h4>${account.type_of_loan}</h4>
-            <p>Tenure: ${account.tenure}</p>
+            <h4>${account.type_of_loan || 'N/A'}</h4>
+            <p>Tenure: ${account.tenure || 'N/A'}</p>
             <div class="loan-account-id">${account.loan_account_id}</div>
         `;
         
         grid.appendChild(card);
+        console.log(`Added account card ${index}: ${account.type_of_loan}`);
     });
     
+    console.log('Total cards added:', grid.children.length);
     container.style.display = 'block';
     scrollToBottom();
 }
