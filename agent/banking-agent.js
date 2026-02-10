@@ -78,8 +78,15 @@ class BankingAgent {
         return await this.handleDetailsView(message);
       
       default:
+        // If no specific step, check if it's a general banking query
+        if (message.includes('help') || message.includes('what can you do')) {
+          return {
+            message: "I can help you check your loan account details. Would you like to view your loan information?",
+            action: 'wait_for_input'
+          };
+        }
         return {
-          message: "How can I help you today? You can ask me to check your loan details.",
+          message: "Try saying: 'I want to check my bank details'",
           action: 'wait_for_input'
         };
     }
@@ -118,7 +125,18 @@ class BankingAgent {
       'view loan',
       'show loan',
       'loan information',
-      'loan account'
+      'loan account',
+      'bank details',
+      'check bank',
+      'view bank',
+      'show bank',
+      'bank information',
+      'account details',
+      'check account',
+      'view account',
+      'show account',
+      'my details',
+      'account information'
     ];
     return patterns.some(pattern => message.includes(pattern));
   }
