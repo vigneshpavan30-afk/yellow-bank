@@ -457,7 +457,9 @@ class BankingAgent {
     }
 
     // Verify OTP
+    console.log('Verifying OTP:', { userOTP, storedOTP: this.state.otpValue });
     const isValid = this.verifyOTP(userOTP, this.state.otpValue);
+    console.log('OTP verification result:', isValid);
     
     if (isValid) {
       this.state.otpVerified = true;
