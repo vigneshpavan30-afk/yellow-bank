@@ -36,7 +36,29 @@ class BankingAgent {
   async processMessage(userMessage) {
     const message = userMessage.trim().toLowerCase();
 
-    // Language check
+    // Handle based on current step FIRST (before language check for data collection)
+    // This allows phone numbers, dates, OTPs to be processed even if they fail language check
+    if (this.state.currentStep === 'collecting_phone') {
+      return await this.handlePhoneNumber(message);
+    }
+    
+    if (this.state.currentStep === 'collecting_dob') {
+      return await this.handleDOB(message);
+    }
+    
+    if (this.state.currentStep === 'verifying_otp') {
+      return await this.handleOTP(message);
+    }
+    
+    if (this.state.currentStep === 'showing_accounts') {
+      return await this.handleAccountSelection(message);
+    }
+    
+    if (this.state.currentStep === 'showing_details') {
+      return await this.handleDetailsView(message);
+    }
+
+    // Language check (only for text messages, not data collection)
     if (!this.isEnglish(message)) {
       return {
         message: "I apologize, but I'm restricted to operating in English only. Please continue our conversation in English.",
@@ -60,36 +82,18 @@ class BankingAgent {
       return await this.handlePhoneNumberCorrection();
     }
 
-    // Handle based on current step
-    switch (this.state.currentStep) {
-      case 'collecting_phone':
-        return await this.handlePhoneNumber(message);
-      
-      case 'collecting_dob':
-        return await this.handleDOB(message);
-      
-      case 'verifying_otp':
-        return await this.handleOTP(message);
-      
-      case 'showing_accounts':
-        return await this.handleAccountSelection(message);
-      
-      case 'showing_details':
-        return await this.handleDetailsView(message);
-      
-      default:
-        // If no specific step, check if it's a general banking query
-        if (message.includes('help') || message.includes('what can you do')) {
-          return {
-            message: "I can help you check your loan account details. Would you like to view your loan information?",
-            action: 'wait_for_input'
-          };
-        }
-        return {
-          message: "Try saying: 'I want to check my bank details'",
-          action: 'wait_for_input'
-        };
+    // Default response
+    if (message.includes('help') || message.includes('what can you do')) {
+      return {
+        message: "I can help you check your loan account details. Would you like to view your loan information?",
+        action: 'wait_for_input'
+      };
     }
+    
+    return {
+      message: "Try saying: 'I want to check my bank details'",
+      action: 'wait_for_input'
+    };
   }
 
   /**
