@@ -26,7 +26,7 @@ const BankingAgent = require('../agent/banking-agent');
 const API_KEY = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
 // Use environment variable or default to Beeceptor URL for production
 // For local development, this should be set to http://localhost:3001
-const API_BASE_URL = process.env.API_BASE_URL || 'https://yellow-bank-api.free.beeceptor.com';
+const API_BASE_URL = process.env.API_BASE_URL || 'https://yello-bank.free.beeceptor.com';
 
 // Set environment variables BEFORE creating agent
 process.env.YB_API_KEY = API_KEY;
