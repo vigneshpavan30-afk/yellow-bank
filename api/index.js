@@ -7,6 +7,20 @@ const http = require('http');
 const url = require('url');
 const fs = require('fs');
 const path = require('path');
+
+// Use native fetch in Node.js 18+ (Vercel supports this)
+// Fallback to node-fetch for older versions
+let fetch;
+if (typeof globalThis.fetch === 'function') {
+  fetch = globalThis.fetch;
+} else {
+  fetch = require('node-fetch');
+}
+
+// Set global fetch for BankingAgent
+global.fetch = fetch;
+global.Headers = global.Headers || (fetch.Headers || (() => {}));
+
 const BankingAgent = require('../agent/banking-agent');
 
 const API_KEY = process.env.YB_API_KEY || 'AIzaSyC-nRiKZIbOa8iNoPfkePqiSnE8mAlChiY';

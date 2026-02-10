@@ -3,11 +3,47 @@
  * Complete implementation of the banking agent logic
  */
 
-let fetch = require('node-fetch');
-
-// Allow fetch to be mocked for testing
-if (typeof global.fetch === 'function') {
+// Use native fetch if available (Node.js 18+), otherwise use node-fetch
+let fetch;
+if (typeof globalThis.fetch === 'function') {
+  fetch = globalThis.fetch;
+} else if (typeof global.fetch === 'function') {
   fetch = global.fetch;
+} else {
+  try {
+    fetch = require('node-fetch');
+  } catch (e) {
+    // If node-fetch is not available, use a basic implementation
+    fetch = async (url, options) => {
+      const https = require('https');
+      const http = require('http');
+      const { URL } = require('url');
+      return new Promise((resolve, reject) => {
+        const parsedUrl = new URL(url);
+        const client = parsedUrl.protocol === 'https:' ? https : http;
+        const req = client.request(url, {
+          method: options?.method || 'GET',
+          headers: options?.headers || {}
+        }, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            resolve({
+              ok: res.statusCode >= 200 && res.statusCode < 300,
+              status: res.statusCode,
+              json: async () => JSON.parse(data),
+              text: async () => data
+            });
+          });
+        });
+        req.on('error', reject);
+        if (options?.body) {
+          req.write(options.body);
+        }
+        req.end();
+      });
+    };
+  }
 }
 
 class BankingAgent {
