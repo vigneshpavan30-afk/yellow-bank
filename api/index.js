@@ -24,7 +24,10 @@ let agent;
 function getAgent() {
   if (!agent) {
     try {
+      // Set environment variable before creating agent so it uses the correct API URL
+      process.env.API_BASE_URL = API_BASE_URL;
       agent = new BankingAgent();
+      // Also set it directly to ensure it's correct
       agent.apiBaseUrl = API_BASE_URL;
     } catch (error) {
       console.error('Error initializing agent:', error);
