@@ -517,7 +517,7 @@ class BankingAgent {
    */
   async getLoanAccounts() {
     try {
-      const apiKey = process.env.YB_API_KEY || '';
+      const apiKey = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
       const response = await fetch(`${this.apiBaseUrl}/get-loan-accounts`, {
         method: 'GET',
         headers: {
@@ -646,7 +646,7 @@ class BankingAgent {
    */
   async getLoanDetails(accountId) {
     try {
-      const apiKey = process.env.YB_API_KEY || '';
+      const apiKey = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
       const response = await fetch(`${this.apiBaseUrl}/get-loan-details?accountId=${accountId}`, {
         method: 'GET',
         headers: {
