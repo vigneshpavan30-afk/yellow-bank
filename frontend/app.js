@@ -126,14 +126,22 @@ function handleAgentResponse(response) {
     // Handle different response types
     if (response.action === 'show_accounts') {
         console.log('show_accounts action received:', response);
+        console.log('Full response object:', JSON.stringify(response, null, 2));
         console.log('Accounts array:', response.accounts);
         console.log('Accounts length:', response.accounts ? response.accounts.length : 0);
+        console.log('Accounts type:', Array.isArray(response.accounts) ? 'Array' : typeof response.accounts);
         
-        if (response.accounts && response.accounts.length > 0) {
-            showLoanAccounts(response.accounts);
+        // Check if accounts exist in different possible locations
+        const accounts = response.accounts || response.data?.accounts || response.loanAccounts || [];
+        
+        if (Array.isArray(accounts) && accounts.length > 0) {
+            console.log('Calling showLoanAccounts with:', accounts);
+            showLoanAccounts(accounts);
         } else {
-            console.error('No accounts in response or empty array!');
-            addMessage('agent', 'No loan accounts found. Please contact support.');
+            console.error('No accounts found!');
+            console.error('Response structure:', Object.keys(response));
+            console.error('Accounts value:', accounts);
+            addMessage('agent', 'No loan accounts found. Please contact support or try again.');
         }
     }
     
@@ -216,15 +224,17 @@ function showLoanAccounts(accounts) {
     // Process and add accounts
     let cardsAdded = 0;
     accounts.forEach((account, index) => {
-        console.log(`Processing account ${index}:`, account);
+        console.log(`Processing account ${index}:`, JSON.stringify(account, null, 2));
         
         // Support multiple field name formats
-        const loanAccountId = account.loan_account_id || account.accountNumber || account.account_id || account.id;
+        const loanAccountId = account.loan_account_id || account.accountNumber || account.account_id || account.id || account.account_number;
         
         if (!loanAccountId) {
-            console.warn(`Skipping account ${index} - missing ID:`, account);
+            console.warn(`Skipping account ${index} - missing ID. Account object:`, JSON.stringify(account, null, 2));
             return;
         }
+        
+        console.log(`Account ${index} has ID: ${loanAccountId}`);
         
         const card = document.createElement('div');
         card.className = 'loan-account-card';
