@@ -635,7 +635,7 @@ class BankingAgent {
       
       const projectedAccounts = accounts
         .filter(account => {
-          // Support multiple field name formats
+          // Support multiple field name formats - account must have some form of ID
           const hasId = account && (
             account.loan_account_id || 
             account.accountNumber || 
@@ -647,11 +647,34 @@ class BankingAgent {
           }
           return hasId;
         })
-        .map(account => ({
-          loan_account_id: account.loan_account_id || account.accountNumber || account.account_id || account.id || '',
-          type_of_loan: account.type_of_loan || account.accountType || account.type || account.loan_type || 'N/A',
-          tenure: account.tenure || account.tenure_years || account.duration || 'N/A'
-        }));
+        .map(account => {
+          // Map all possible field name variations
+          const loanAccountId = account.loan_account_id || account.accountNumber || account.account_id || account.id || '';
+          const typeOfLoan = account.type_of_loan || account.accountType || account.type || account.loan_type || 'Unknown Loan';
+          // tenure is optional - default to "N/A" if missing
+          const tenure = account.tenure || account.tenure_years || account.duration || account.term || 'N/A';
+          
+          console.log('Mapping account:', {
+            original: {
+              loan_account_id: account.loan_account_id,
+              accountNumber: account.accountNumber,
+              type_of_loan: account.type_of_loan,
+              accountType: account.accountType,
+              tenure: account.tenure
+            },
+            mapped: {
+              loan_account_id: loanAccountId,
+              type_of_loan: typeOfLoan,
+              tenure: tenure
+            }
+          });
+          
+          return {
+            loan_account_id: loanAccountId,
+            type_of_loan: typeOfLoan,
+            tenure: tenure
+          };
+        });
       
       console.log('Projected accounts:', projectedAccounts.length, 'items');
       console.log('Projected accounts data:', JSON.stringify(projectedAccounts, null, 2));
