@@ -660,6 +660,27 @@ class BankingAgent {
   }
 
   /**
+   * Restore agent state from saved state
+   */
+  setState(savedState) {
+    if (savedState && typeof savedState === 'object') {
+      this.state = {
+        phoneNumber: savedState.phoneNumber || null,
+        dob: savedState.dob || null,
+        otp: savedState.otp || null,
+        otpValue: savedState.otpValue || null,
+        otpVerified: savedState.otpVerified || false,
+        otpRetryCount: savedState.otpRetryCount || 0,
+        selectedAccountId: savedState.selectedAccountId || null,
+        loanAccounts: savedState.loanAccounts || [],
+        loanDetails: savedState.loanDetails || null,
+        currentStep: savedState.currentStep || 'idle',
+        intent: savedState.intent || null
+      };
+    }
+  }
+
+  /**
    * Reset agent state
    */
   reset() {

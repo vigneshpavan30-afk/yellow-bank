@@ -75,7 +75,10 @@ async function sendMessage() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message }),
+            body: JSON.stringify({ 
+                message,
+                state: agentState // Send current state with request
+            }),
             signal: controller.signal
         });
         

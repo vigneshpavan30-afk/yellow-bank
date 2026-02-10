@@ -76,6 +76,11 @@ module.exports = async (req, res) => {
         throw new Error('Missing message in request body');
       }
       
+      // Restore state if provided (for stateless serverless functions)
+      if (data.state) {
+        agent.setState(data.state);
+      }
+      
       const response = await agent.processMessage(data.message);
       
       res.status(200).json({
@@ -116,6 +121,11 @@ module.exports = async (req, res) => {
       
       if (!data || !data.accountId) {
         throw new Error('Missing accountId in request body');
+      }
+      
+      // Restore state if provided (for stateless serverless functions)
+      if (data.state) {
+        agent.setState(data.state);
       }
       
       const response = await agent.processMessage(data.accountId);
