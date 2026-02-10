@@ -373,8 +373,11 @@ class BankingAgent {
   async triggerOTP() {
     try {
       const apiKey = process.env.YB_API_KEY || 'AIzaSyC-nRiKZIbOa8iNoPfkePqiSnE8mAlChiY';
+      const url = `${this.apiBaseUrl}/trigger-otp`;
       
-      const response = await fetch(`${this.apiBaseUrl}/trigger-otp`, {
+      console.log('Triggering OTP:', { url, phoneNumber: this.state.phoneNumber, dob: this.state.dob });
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -386,14 +389,19 @@ class BankingAgent {
         })
       });
 
+      console.log('OTP API Response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('OTP API Error:', response.status, errorText);
         return {
           success: false,
-          error: `API error: ${response.status}`
+          error: `API error: ${response.status} - ${errorText}`
         };
       }
 
       const data = await response.json();
+      console.log('OTP API Response data:', data);
       
       if (data.status === 'success' && data.otp) {
         return {
@@ -407,6 +415,7 @@ class BankingAgent {
         };
       }
     } catch (error) {
+      console.error('OTP trigger exception:', error);
       return {
         success: false,
         error: error.message || 'Network error'
