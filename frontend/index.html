@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yellow Bank - AI Banking Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🏦 Yellow Bank</h1>
+                    <p>AI Banking Assistant</p>
+                </div>
+                <div class="status" id="status">
+                    <span class="status-dot"></span>
+                    <span>Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Container -->
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message" id="welcomeMessage">
+                <div class="welcome-icon">👋</div>
+                <h2>Welcome to Yellow Bank</h2>
+                <p>I'm your AI banking assistant. I can help you check your loan details.</p>
+                <p class="hint">Try saying: "I want to check my loan details"</p>
+            </div>
+
+            <!-- Messages will be added here -->
+            <div class="messages" id="messages"></div>
+
+            <!-- Loan Accounts Cards (shown after OTP verification) -->
+            <div class="loan-accounts-container" id="loanAccountsContainer" style="display: none;">
+                <h3>Your Loan Accounts</h3>
+                <div class="loan-accounts-grid" id="loanAccountsGrid"></div>
+            </div>
+
+            <!-- Loan Details (shown after account selection) -->
+            <div class="loan-details-container" id="loanDetailsContainer" style="display: none;">
+                <h3>Loan Account Details</h3>
+                <div class="loan-details-card" id="loanDetailsCard"></div>
+                <button class="csat-button" id="csatButton" onclick="redirectToCSAT()">
+                    Rate our chat
+                </button>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    id="userInput" 
+                    placeholder="Type your message here..." 
+                    autocomplete="off"
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button id="sendButton" onclick="sendMessage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <div class="quick-actions" id="quickActions"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

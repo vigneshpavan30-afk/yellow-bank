@@ -1,0 +1,191 @@
+{
+  "agent": {
+    "name": "Yellow Bank - Loan Details Agent",
+    "description": "AI Banking Agent for Yellow Bank to help customers view their loan account details",
+    "language": "en",
+    "timezone": "Asia/Kolkata",
+    "botType": "conversational_ai",
+    "settings": {
+      "maxTokenLimit": 4000,
+      "contextRetention": true,
+      "sessionTimeout": 300,
+      "languageRestriction": {
+        "enabled": true,
+        "allowedLanguages": ["en"],
+        "rejectionMessage": "I apologize, but I'm restricted to operating in English only. Please continue our conversation in English."
+      }
+    }
+  },
+  "intents": [
+    {
+      "name": "view_loan_details",
+      "displayName": "View Loan Details",
+      "trainingPhrases": [
+        "I want to check my loan details",
+        "Show loan details",
+        "I need to see my loan information",
+        "Can you show me my loan account details",
+        "Display my loan details",
+        "I want to view my loan",
+        "Show me my loan information",
+        "Check my loan account",
+        "Loan details please",
+        "I need my loan information",
+        "View my loan",
+        "Show loan account",
+        "I want to see my loans"
+      ],
+      "action": "trigger_authentication_flow"
+    },
+    {
+      "name": "change_phone_number",
+      "displayName": "Change Phone Number",
+      "trainingPhrases": [
+        "Wait, that's my old number",
+        "I want to check for a different number",
+        "That's not my current number",
+        "I need to update my phone number",
+        "That's wrong number",
+        "That number is incorrect",
+        "I want to use a different number",
+        "Change my phone number"
+      ],
+      "action": "clear_and_restart_authentication"
+    }
+  ],
+  "slots": [
+    {
+      "name": "phoneNumber",
+      "displayName": "Phone Number",
+      "type": "text",
+      "required": true,
+      "validation": {
+        "pattern": "^[0-9]{10}$",
+        "errorMessage": "The phone number format appears incorrect. Please provide a valid 10-digit phone number."
+      },
+      "prompt": "To access your loan details, I'll need to verify your identity. Please provide your registered phone number.",
+      "entityExtraction": {
+        "type": "phone_number",
+        "pattern": "[0-9]{10}"
+      }
+    },
+    {
+      "name": "dob",
+      "displayName": "Date of Birth",
+      "type": "date",
+      "required": true,
+      "validation": {
+        "format": ["DD/MM/YYYY", "DD-MM-YYYY"],
+        "errorMessage": "Please provide your date of birth in DD/MM/YYYY or DD-MM-YYYY format."
+      },
+      "prompt": "Thank you. Now, please provide your date of birth (format: DD/MM/YYYY or DD-MM-YYYY).",
+      "entityExtraction": {
+        "type": "date",
+        "formats": ["DD/MM/YYYY", "DD-MM-YYYY"]
+      }
+    },
+    {
+      "name": "otp",
+      "displayName": "OTP",
+      "type": "text",
+      "required": true,
+      "temporary": true,
+      "validation": {
+        "pattern": "^[0-9]{4}$",
+        "errorMessage": "Please provide a valid 4-digit OTP."
+      },
+      "prompt": "An OTP has been sent to your registered phone number. Please provide the OTP you received.",
+      "clearAfterUse": true,
+      "maxRetries": 2
+    },
+    {
+      "name": "selectedAccountId",
+      "displayName": "Selected Account ID",
+      "type": "text",
+      "required": true,
+      "source": "drm_selection",
+      "extraction": {
+        "from": "button_message_value",
+        "pattern": "LA[0-9]{6}"
+      }
+    }
+  ],
+  "workflows": [
+    {
+      "name": "triggerOTP",
+      "displayName": "Trigger OTP",
+      "type": "api_workflow",
+      "trigger": {
+        "condition": "phoneNumber && dob",
+        "autoTrigger": true
+      },
+      "api": {
+        "method": "POST",
+        "url": "https://YOUR-BEECEPTOR-URL.free.beeceptor.com/trigger-otp",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {{env.YB_API_KEY}}"
+        },
+        "body": {
+          "phoneNumber": "{{phoneNumber}}",
+          "dob": "{{dob}}"
+        }
+      },
+      "responseMapping": {
+        "otpValue": "{{response.otp}}",
+        "status": "{{response.status}}"
+      },
+      "errorHandling": {
+        "onError": "show_error_message",
+        "errorMessage": "I'm experiencing a technical issue. Please try again in a moment, or contact our support team."
+      }
+    },
+    {
+      "name": "getLoanAccounts",
+      "displayName": "Get Loan Accounts",
+      "type": "drm_workflow",
+      "trigger": {
+        "condition": "otpVerified == true",
+        "autoTrigger": true
+      },
+      "api": {
+        "method": "GET",
+        "url": "https://YOUR-BEECEPTOR-URL.free.beeceptor.com/get-loan-accounts",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {{env.YB_API_KEY}}"
+        }
+      },
+      "dataTransformation": {
+        "function": "projectLoanAccounts",
+        "input": "{{apiResponse}}",
+        "output": "{{projectedLoanAccounts}}"
+      },
+      "drm": {
+        "type": "interactive_cards",
+        "template": "loan-account-card-template"
+      }
+    },
+    {
+      "name": "loanDetails",
+      "displayName": "Loan Details",
+      "type": "drm_workflow",
+      "trigger": {
+        "condition": "selectedAccountId",
+        "autoTrigger": true
+      },
+      "api": {
+        "method": "GET",
+        "url": "https://YOUR-BEECEPTOR-URL.free.beeceptor.com/get-loan-details?accountId={{selectedAccountId}}",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {{env.YB_API_KEY}}"
+        }
+      },
+      "drm": {
+        "type": "quick_replies",
+        "template": "loan-details-template"
+      }
+    }
+  ]
+}

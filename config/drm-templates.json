@@ -1,0 +1,66 @@
+{
+  "loan-account-card-template": {
+    "type": "interactive_cards",
+    "title": "Your Loan Accounts",
+    "subtitle": "Select an account to view details",
+    "cards": [
+      {
+        "template": "{{#each accounts}}",
+        "card": {
+          "title": "{{type_of_loan}}",
+          "subtitle": "Account ID: {{loan_account_id}}",
+          "description": "Tenure: {{tenure}}",
+          "image": "",
+          "buttons": [
+            {
+              "type": "select",
+              "label": "Select",
+              "message": "{{loan_account_id}}",
+              "payload": "select_account_{{loan_account_id}}"
+            }
+          ]
+        },
+        "templateEnd": "{{/each}}"
+      }
+    ],
+    "note": "CRITICAL: The button's 'message' value MUST contain the loan_account_id for slot extraction"
+  },
+  "loan-details-template": {
+    "type": "quick_replies",
+    "text": "Your Loan Account Details:",
+    "quickReplies": [
+      {
+        "type": "text",
+        "title": "Tenure: {{tenure}}",
+        "payload": "tenure_info"
+      },
+      {
+        "type": "text",
+        "title": "Interest Rate: {{interest_rate}}%",
+        "payload": "interest_info"
+      },
+      {
+        "type": "text",
+        "title": "Principal Pending: ₹{{principal_pending}}",
+        "payload": "principal_info"
+      },
+      {
+        "type": "text",
+        "title": "Interest Pending: ₹{{interest_pending}}",
+        "payload": "interest_pending_info"
+      },
+      {
+        "type": "text",
+        "title": "Nominee: {{nominee}}",
+        "payload": "nominee_info"
+      },
+      {
+        "type": "button",
+        "title": "Rate our chat",
+        "payload": "redirect_to_csat",
+        "url": "{{csatAgentUrl}}",
+        "action": "redirect"
+      }
+    ]
+  }
+}

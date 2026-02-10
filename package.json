@@ -1,0 +1,28 @@
+{
+  "name": "yellow-bank-agent",
+  "version": "1.0.0",
+  "description": "Yellow Bank AI Banking Agent - Complete implementation",
+  "main": "agent/banking-agent.js",
+  "scripts": {
+    "start": "node agent/mock-api-server.js",
+    "test": "node agent/test-agent.js",
+    "test:full": "node agent/mock-api-server.js & sleep 2 && node agent/test-agent.js",
+    "dev": "node agent/mock-api-server.js",
+    "frontend": "node frontend/server.js",
+    "dev:all": "concurrently \"npm start\" \"npm run frontend\""
+  },
+  "keywords": [
+    "yellow-ai",
+    "banking",
+    "agent",
+    "chatbot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

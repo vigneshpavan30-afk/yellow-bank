@@ -1,0 +1,104 @@
+{
+  "agent": {
+    "name": "Yellow Bank - CSAT Survey Agent",
+    "description": "Customer Satisfaction survey agent for Yellow Bank",
+    "language": "en",
+    "timezone": "Asia/Kolkata",
+    "botType": "survey_agent"
+  },
+  "systemPrompt": "You are a friendly customer satisfaction survey assistant for Yellow Bank. Your role is to collect feedback about the user's experience with the banking agent.\n\nYour objectives:\n1. Greet the user warmly\n2. Ask for a rating (Good, Average, or Bad)\n3. Collect optional feedback text\n4. Thank the user for their feedback\n5. End the conversation gracefully\n\nKeep interactions brief and professional. Do not ask unnecessary questions.",
+  "intents": [
+    {
+      "name": "start_csat_survey",
+      "displayName": "Start CSAT Survey",
+      "trainingPhrases": [
+        "Rate our chat",
+        "I want to rate the chat",
+        "Feedback",
+        "Survey",
+        "Rate the service"
+      ],
+      "action": "start_survey_flow"
+    }
+  ],
+  "slots": [
+    {
+      "name": "csat_rating",
+      "displayName": "CSAT Rating",
+      "type": "categorical",
+      "required": true,
+      "options": ["Good", "Average", "Bad"],
+      "prompt": "How would you rate your experience with our banking assistant? Please choose: Good, Average, or Bad.",
+      "collectionMethod": "quick_reply_buttons"
+    },
+    {
+      "name": "csat_feedback",
+      "displayName": "CSAT Feedback",
+      "type": "text",
+      "required": false,
+      "prompt": "Thank you for your rating! Would you like to share any additional feedback? (This is optional)",
+      "collectionMethod": "free_text"
+    }
+  ],
+  "quickReplies": {
+    "ratingSelection": {
+      "text": "How would you rate your experience with our banking assistant?",
+      "quickReplies": [
+        {
+          "type": "button",
+          "title": "Good",
+          "payload": "rating_good",
+          "value": "Good"
+        },
+        {
+          "type": "button",
+          "title": "Average",
+          "payload": "rating_average",
+          "value": "Average"
+        },
+        {
+          "type": "button",
+          "title": "Bad",
+          "payload": "rating_bad",
+          "value": "Bad"
+        }
+      ]
+    }
+  },
+  "workflows": [
+    {
+      "name": "storeCSATFeedback",
+      "displayName": "Store CSAT Feedback",
+      "type": "api_workflow",
+      "trigger": {
+        "condition": "csat_rating",
+        "autoTrigger": true
+      },
+      "api": {
+        "method": "POST",
+        "url": "https://YOUR-BEECEPTOR-URL.free.beeceptor.com/store-csat",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {{env.YB_API_KEY}}"
+        },
+        "body": {
+          "rating": "{{csat_rating}}",
+          "feedback": "{{csat_feedback}}",
+          "userId": "{{userId}}",
+          "sessionId": "{{sessionId}}",
+          "timestamp": "{{currentTimestamp}}"
+        }
+      },
+      "responseHandling": {
+        "onSuccess": "show_thank_you_message",
+        "onError": "show_thank_you_message_anyway"
+      }
+    }
+  ],
+  "messages": {
+    "greeting": "Thank you for using Yellow Bank's services! We'd love to hear about your experience. How would you rate your experience with our banking assistant?",
+    "afterRating": "Thank you for your rating! Would you like to share any additional feedback? (This is optional)",
+    "finalThankYou": "Thank you for your valuable feedback! We truly appreciate your time. Your feedback helps us improve our services. Have a great day!",
+    "skipFeedback": "Thank you for your time! Your feedback helps us improve our services. Have a great day!"
+  }
+}

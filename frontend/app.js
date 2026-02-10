@@ -1,0 +1,299 @@
+/**
+ * Yellow Bank - Frontend Application
+ * Connects to the banking agent backend
+ */
+
+const API_BASE_URL = 'http://localhost:3001';
+const AGENT_API_URL = 'http://localhost:3002'; // We'll create an API wrapper
+
+let agentState = {
+    currentStep: 'idle',
+    phoneNumber: null,
+    dob: null,
+    otpValue: null,
+    loanAccounts: [],
+    selectedAccountId: null,
+    loanDetails: null
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    const userInput = document.getElementById('userInput');
+    userInput.focus();
+    
+    // Show welcome message
+    showWelcomeMessage();
+});
+
+// Handle Enter key
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+// Send message to agent
+async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Hide welcome message
+    document.getElementById('welcomeMessage').style.display = 'none';
+    
+    // Add user message to chat
+    addMessage('user', message);
+    
+    // Clear input
+    input.value = '';
+    
+    // Show loading
+    const loadingId = addMessage('agent', 'Thinking...', true);
+    
+    try {
+        // Call agent API with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch(`${AGENT_API_URL}/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message }),
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Remove loading
+        removeMessage(loadingId);
+        
+        // Handle response
+        handleAgentResponse(data);
+        
+    } catch (error) {
+        removeMessage(loadingId);
+        if (error.name === 'AbortError') {
+            addMessage('agent', "Request timed out. Please try again.");
+        } else {
+            addMessage('agent', "I'm experiencing a technical issue. Please try again.");
+        }
+    }
+}
+
+// Handle agent response
+function handleAgentResponse(response) {
+    // Update state
+    if (response.state) {
+        agentState = { ...agentState, ...response.state };
+    }
+    
+    // Add agent message
+    if (response.message) {
+        addMessage('agent', response.message);
+        
+        // Show OTP if provided (for testing)
+        if (response.otpValue) {
+            showOTP(response.otpValue);
+        }
+    }
+    
+    // Handle different response types
+    if (response.action === 'show_accounts' && response.accounts) {
+        showLoanAccounts(response.accounts);
+    }
+    
+    if (response.action === 'show_details' && response.details) {
+        showLoanDetails(response.details);
+    }
+    
+    // Update quick actions
+    updateQuickActions(response);
+}
+
+// Add message to chat
+function addMessage(sender, text, isLoading = false) {
+    const messagesContainer = document.getElementById('messages');
+    const messageId = 'msg-' + Date.now();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    messageDiv.id = messageId;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    if (isLoading) {
+        contentDiv.innerHTML = '<span class="loading"></span> ' + text;
+    } else {
+        contentDiv.textContent = text;
+    }
+    
+    messageDiv.appendChild(contentDiv);
+    messagesContainer.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    scrollToBottom();
+    
+    return messageId;
+}
+
+// Remove message
+function removeMessage(messageId) {
+    const message = document.getElementById(messageId);
+    if (message) {
+        message.remove();
+    }
+}
+
+// Show OTP (for testing)
+function showOTP(otp) {
+    const messagesContainer = document.getElementById('messages');
+    const otpDiv = document.createElement('div');
+    otpDiv.className = 'message-otp';
+    otpDiv.innerHTML = `🔐 <strong>TEST MODE</strong><br>Generated OTP: <span style="font-size: 24px; color: #FF6B6B;">${otp}</span>`;
+    messagesContainer.appendChild(otpDiv);
+    scrollToBottom();
+}
+
+// Show loan accounts
+function showLoanAccounts(accounts) {
+    const container = document.getElementById('loanAccountsContainer');
+    const grid = document.getElementById('loanAccountsGrid');
+    
+    grid.innerHTML = '';
+    
+    accounts.forEach((account, index) => {
+        const card = document.createElement('div');
+        card.className = 'loan-account-card';
+        card.onclick = () => selectAccount(account.loan_account_id);
+        
+        card.innerHTML = `
+            <h4>${account.type_of_loan}</h4>
+            <p>Tenure: ${account.tenure}</p>
+            <div class="loan-account-id">${account.loan_account_id}</div>
+        `;
+        
+        grid.appendChild(card);
+    });
+    
+    container.style.display = 'block';
+    scrollToBottom();
+}
+
+// Select account
+async function selectAccount(accountId) {
+    agentState.selectedAccountId = accountId;
+    
+    // Hide accounts container
+    document.getElementById('loanAccountsContainer').style.display = 'none';
+    
+    // Show loading
+    const loadingId = addMessage('agent', 'Fetching loan details...', true);
+    
+    try {
+        // Call agent to get loan details
+        const response = await fetch(`${AGENT_API_URL}/select-account`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ accountId })
+        });
+        
+        const data = await response.json();
+        removeMessage(loadingId);
+        
+        if (data.details) {
+            showLoanDetails(data.details);
+        } else {
+            addMessage('agent', data.message || 'Unable to fetch loan details.');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        removeMessage(loadingId);
+        addMessage('agent', 'Error fetching loan details. Please try again.');
+    }
+}
+
+// Show loan details
+function showLoanDetails(details) {
+    const container = document.getElementById('loanDetailsContainer');
+    const card = document.getElementById('loanDetailsCard');
+    
+    card.innerHTML = `
+        <div class="detail-item">
+            <label>Account ID</label>
+            <value>${details.account_id}</value>
+        </div>
+        <div class="detail-item">
+            <label>Tenure</label>
+            <value>${details.tenure}</value>
+        </div>
+        <div class="detail-item">
+            <label>Interest Rate</label>
+            <value>${details.interest_rate}%</value>
+        </div>
+        <div class="detail-item">
+            <label>Principal Pending</label>
+            <value>₹${details.principal_pending}</value>
+        </div>
+        <div class="detail-item">
+            <label>Interest Pending</label>
+            <value>₹${details.interest_pending}</value>
+        </div>
+        <div class="detail-item">
+            <label>Nominee</label>
+            <value>${details.nominee}</value>
+        </div>
+    `;
+    
+    container.style.display = 'block';
+    scrollToBottom();
+}
+
+// Update quick actions
+function updateQuickActions(response) {
+    const container = document.getElementById('quickActions');
+    container.innerHTML = '';
+    
+    // Add quick action buttons based on response
+    if (response.quickActions) {
+        response.quickActions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-action-btn';
+            btn.textContent = action.label;
+            btn.onclick = () => {
+                document.getElementById('userInput').value = action.value;
+                sendMessage();
+            };
+            container.appendChild(btn);
+        });
+    }
+}
+
+// Redirect to CSAT
+function redirectToCSAT() {
+    alert('Redirecting to CSAT survey...\n(In production, this would redirect to the CSAT agent)');
+    // In production: window.location.href = CSAT_AGENT_URL;
+}
+
+// Scroll to bottom
+function scrollToBottom() {
+    const container = document.getElementById('chatContainer');
+    container.scrollTop = container.scrollHeight;
+}
+
+// Show welcome message
+function showWelcomeMessage() {
+    // Welcome message is shown by default in HTML
+}
