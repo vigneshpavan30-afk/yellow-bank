@@ -111,7 +111,8 @@ class BankingAgent {
     }
     
     // For text, check if it contains mostly English characters
-    const englishPattern = /^[a-zA-Z0-9\s.,!?'-]+$/;
+    // Allow quotes, apostrophes, and common punctuation
+    const englishPattern = /^[a-zA-Z0-9\s.,!?'"`-]+$/;
     return englishPattern.test(message);
   }
 

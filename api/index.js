@@ -83,9 +83,12 @@ module.exports = async (req, res) => {
       
       const response = await agent.processMessage(data.message);
       
+      // Get updated state after processing
+      const updatedState = agent.getState();
+      
       res.status(200).json({
         ...response,
-        state: agent.getState()
+        state: updatedState
       });
     } catch (error) {
       console.error('Chat error:', error);
