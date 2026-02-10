@@ -4,7 +4,10 @@
  */
 
 const API_BASE_URL = 'http://localhost:3001';
-const AGENT_API_URL = 'http://localhost:3002'; // We'll create an API wrapper
+// Use relative URLs for Vercel, localhost for local development
+const AGENT_API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3002' 
+    : '/api';
 
 let agentState = {
     currentStep: 'idle',
