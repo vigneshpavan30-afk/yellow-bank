@@ -448,9 +448,9 @@ class BankingAgent {
   async handleOTP(message) {
     const userOTP = message.replace(/\D/g, ''); // Extract digits only
     
-    if (userOTP.length !== 4) {
+    if (userOTP.length < 4 || userOTP.length > 6) {
       return {
-        message: "Please provide a valid 4-digit OTP.",
+        message: "Please provide a valid OTP (4-6 digits).",
         action: 'retry_otp',
         nextStep: 'verifying_otp'
       };
