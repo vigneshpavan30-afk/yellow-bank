@@ -139,7 +139,7 @@ class BankingAgent {
     // Allow dates (DD/MM/YYYY or DD-MM-YYYY), phone numbers, OTPs, and account IDs
     const datePattern = /^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/;
     const phonePattern = /^\d{10}$/;
-    const otpPattern = /^\d{4}$/;
+    const otpPattern = /^\d{4,6}$/; // Allow 4-6 digit OTPs
     const accountIdPattern = /^LA\d{6}$/i;
     const numberPattern = /^\d+$/;
     
