@@ -781,19 +781,49 @@ class BankingAgent {
         }
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        console.error('Loan details API request failed:', response.status, response.statusText);
+        return {
+          success: false,
+          error: `API request failed: ${response.status} ${response.statusText}`
+        };
+      }
       
-      if (data.status === 'success') {
+      const data = await response.json();
+      console.log('Raw loan details API response:', JSON.stringify(data, null, 2));
+      
+      // Handle different response formats
+      let details = {};
+      
+      if (data.status === 'success' || !data.status) {
+        // Map all possible field names
+        details = {
+          account_id: data.account_id || data.loan_account_id || data.accountNumber || accountId,
+          loan_account_id: data.loan_account_id || data.account_id || data.accountNumber || accountId,
+          type_of_loan: data.type_of_loan || data.accountType || data.type || 'N/A',
+          tenure: data.tenure || data.tenure_years || data.duration || 'N/A',
+          interest_rate: data.interest_rate || data.interestRate || data.rate || 'N/A',
+          principal_pending: data.principal_pending || data.principalPending || data.principal || 'N/A',
+          interest_pending: data.interest_pending || data.interestPending || data.interest || 'N/A',
+          nominee: data.nominee || data.nominee_name || 'N/A',
+          // Additional fields
+          principal_amount: data.principal_amount || data.principalAmount || data.loan_amount || data.loanAmount || 'N/A',
+          loan_amount: data.loan_amount || data.loanAmount || data.principal_amount || data.principalAmount || 'N/A',
+          outstanding_balance: data.outstanding_balance || data.outstandingBalance || data.balance || 'N/A',
+          emi_amount: data.emi_amount || data.emiAmount || data.emi || 'N/A',
+          disbursement_date: data.disbursement_date || data.disbursementDate || 'N/A',
+          maturity_date: data.maturity_date || data.maturityDate || 'N/A',
+          next_emi_date: data.next_emi_date || data.nextEmiDate || data.nextPaymentDate || 'N/A',
+          total_paid: data.total_paid || data.totalPaid || 'N/A',
+          status: data.status || data.account_status || 'Active',
+          last_payment_date: data.last_payment_date || data.lastPaymentDate || 'N/A'
+        };
+        
+        console.log('Mapped loan details:', JSON.stringify(details, null, 2));
+        
         return {
           success: true,
-          details: {
-            account_id: data.account_id,
-            tenure: data.tenure,
-            interest_rate: data.interest_rate,
-            principal_pending: data.principal_pending,
-            interest_pending: data.interest_pending,
-            nominee: data.nominee
-          }
+          details: details
         };
       } else {
         return {
