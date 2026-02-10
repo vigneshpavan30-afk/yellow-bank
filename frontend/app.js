@@ -239,10 +239,23 @@ function showLoanAccounts(accounts) {
 
 // Select account
 async function selectAccount(accountId) {
-    agentState.selectedAccountId = accountId;
+    console.log('Account selected:', accountId);
     
-    // Hide accounts container
-    document.getElementById('loanAccountsContainer').style.display = 'none';
+    // Hide accounts container IMMEDIATELY
+    const accountsContainer = document.getElementById('loanAccountsContainer');
+    if (accountsContainer) {
+        accountsContainer.style.display = 'none';
+        console.log('Loan accounts container hidden');
+    }
+    
+    // Also hide the grid to ensure it's not visible
+    const accountsGrid = document.getElementById('loanAccountsGrid');
+    if (accountsGrid) {
+        accountsGrid.innerHTML = '';
+        console.log('Loan accounts grid cleared');
+    }
+    
+    agentState.selectedAccountId = accountId;
     
     // Show loading
     const loadingId = addMessage('agent', 'Fetching loan details...', true);
@@ -254,11 +267,19 @@ async function selectAccount(accountId) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ accountId })
+            body: JSON.stringify({ 
+                accountId,
+                state: agentState // Send state for stateless serverless functions
+            })
         });
         
         const data = await response.json();
         removeMessage(loadingId);
+        
+        // Update state if provided
+        if (data.state) {
+            agentState = { ...agentState, ...data.state };
+        }
         
         if (data.details) {
             showLoanDetails(data.details);
