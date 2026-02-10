@@ -353,8 +353,12 @@ class BankingAgent {
         };
       } else {
         console.error('OTP trigger failed:', otpResult.error);
+        // Don't show API success messages as errors
+        const errorMsg = otpResult.error.includes('OTP sent successfully') 
+          ? 'Unable to retrieve OTP from the API response. Please try again.'
+          : otpResult.error;
         return {
-          message: `I'm experiencing a technical issue: ${otpResult.error}. Please check if the backend API is accessible at ${this.apiBaseUrl}`,
+          message: `I'm experiencing a technical issue: ${errorMsg}. Please try again.`,
           action: 'error',
           nextStep: 'collecting_dob'
         };
