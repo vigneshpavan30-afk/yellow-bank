@@ -568,9 +568,20 @@ class BankingAgent {
       });
 
       const rawData = await response.json();
+      console.log('Raw API response:', JSON.stringify(rawData, null, 2));
       
       // Apply token optimization projection
       const projectedData = this.projectLoanAccounts(rawData);
+      console.log('Projected data:', JSON.stringify(projectedData, null, 2));
+      console.log('Accounts count:', projectedData.accounts ? projectedData.accounts.length : 0);
+      
+      if (!projectedData.accounts || projectedData.accounts.length === 0) {
+        console.error('No accounts found in projected data!');
+        return {
+          success: false,
+          error: 'No loan accounts found'
+        };
+      }
       
       return {
         success: true,
@@ -590,15 +601,53 @@ class BankingAgent {
    */
   projectLoanAccounts(apiResponse) {
     try {
-      const accounts = apiResponse.accounts || [];
+      console.log('projectLoanAccounts input:', JSON.stringify(apiResponse, null, 2));
+      
+      // Handle different response formats
+      let accounts = [];
+      
+      // Format 1: { accounts: [...] }
+      if (apiResponse.accounts && Array.isArray(apiResponse.accounts)) {
+        accounts = apiResponse.accounts;
+      }
+      // Format 2: Direct array
+      else if (Array.isArray(apiResponse)) {
+        accounts = apiResponse;
+      }
+      // Format 3: Wrapped in data
+      else if (apiResponse.data && Array.isArray(apiResponse.data)) {
+        accounts = apiResponse.data;
+      }
+      
+      console.log('Extracted accounts array:', accounts.length, 'items');
       
       const projectedAccounts = accounts
-        .filter(account => account && account.loan_account_id)
+        .filter(account => {
+          // Support multiple field name formats
+          const hasId = account && (
+            account.loan_account_id || 
+            account.accountNumber || 
+            account.account_id ||
+            account.id
+          );
+          if (!hasId) {
+            console.warn('Skipping account without ID:', account);
+          }
+          return hasId;
+        })
         .map(account => ({
-          loan_account_id: account.loan_account_id || '',
-          type_of_loan: account.type_of_loan || 'N/A',
-          tenure: account.tenure || 'N/A'
+          loan_account_id: account.loan_account_id || account.accountNumber || account.account_id || account.id || '',
+          type_of_loan: account.type_of_loan || account.accountType || account.type || account.loan_type || 'N/A',
+          tenure: account.tenure || account.tenure_years || account.duration || 'N/A'
         }));
+      
+      console.log('Projected accounts:', projectedAccounts.length, 'items');
+      console.log('Projected accounts data:', JSON.stringify(projectedAccounts, null, 2));
+      
+      if (projectedAccounts.length === 0) {
+        console.error('No valid accounts found after projection!');
+        console.error('Original response structure:', Object.keys(apiResponse || {}));
+      }
       
       return {
         status: apiResponse.status || 'success',
@@ -607,6 +656,7 @@ class BankingAgent {
       };
     } catch (error) {
       console.error('Projection error:', error);
+      console.error('Error stack:', error.stack);
       return {
         status: 'error',
         accounts: [],
