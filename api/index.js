@@ -52,11 +52,30 @@ module.exports = async (req, res) => {
   // API Routes
   if ((pathname === '/api/chat' || pathname === '/chat') && method === 'POST') {
     try {
-      let body = '';
-      for await (const chunk of req) {
-        body += chunk.toString();
+      // Vercel serverless functions - body might already be parsed or need stream reading
+      let data;
+      if (req.body && typeof req.body === 'object') {
+        // Already parsed by Vercel
+        data = req.body;
+      } else {
+        // Need to read stream
+        let body = '';
+        if (req.on) {
+          // Node.js stream
+          for await (const chunk of req) {
+            body += chunk.toString();
+          }
+          data = JSON.parse(body);
+        } else {
+          // Fallback
+          data = req.body || {};
+        }
       }
-      const data = JSON.parse(body);
+      
+      if (!data || !data.message) {
+        throw new Error('Missing message in request body');
+      }
+      
       const response = await agent.processMessage(data.message);
       
       res.status(200).json({
@@ -64,10 +83,10 @@ module.exports = async (req, res) => {
         state: agent.getState()
       });
     } catch (error) {
-      console.error('Chat error:', error.message);
+      console.error('Chat error:', error);
       res.status(500).json({
-        message: 'Internal server error',
-        error: error.message
+        message: 'I apologize, but I encountered a technical issue. Please try again.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
     return;
@@ -75,11 +94,30 @@ module.exports = async (req, res) => {
 
   if ((pathname === '/api/select-account' || pathname === '/select-account') && method === 'POST') {
     try {
-      let body = '';
-      for await (const chunk of req) {
-        body += chunk.toString();
+      // Vercel serverless functions - body might already be parsed or need stream reading
+      let data;
+      if (req.body && typeof req.body === 'object') {
+        // Already parsed by Vercel
+        data = req.body;
+      } else {
+        // Need to read stream
+        let body = '';
+        if (req.on) {
+          // Node.js stream
+          for await (const chunk of req) {
+            body += chunk.toString();
+          }
+          data = JSON.parse(body);
+        } else {
+          // Fallback
+          data = req.body || {};
+        }
       }
-      const data = JSON.parse(body);
+      
+      if (!data || !data.accountId) {
+        throw new Error('Missing accountId in request body');
+      }
+      
       const response = await agent.processMessage(data.accountId);
       
       res.status(200).json({
@@ -89,8 +127,8 @@ module.exports = async (req, res) => {
     } catch (error) {
       console.error('Select account error:', error);
       res.status(500).json({
-        message: 'Internal server error',
-        error: error.message
+        message: 'I apologize, but I encountered a technical issue. Please try again.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
     return;
