@@ -296,6 +296,14 @@ async function selectAccount(accountId) {
 
 // Show loan details
 function showLoanDetails(details) {
+    console.log('Showing loan details:', details);
+    
+    // Ensure loan accounts container is hidden (safety check)
+    const accountsContainer = document.getElementById('loanAccountsContainer');
+    if (accountsContainer) {
+        accountsContainer.style.display = 'none';
+    }
+    
     const container = document.getElementById('loanDetailsContainer');
     const card = document.getElementById('loanDetailsCard');
     
