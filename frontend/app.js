@@ -197,6 +197,7 @@ function showLoanAccounts(accounts) {
     
     if (!accounts || accounts.length === 0) {
         console.error('showLoanAccounts: No accounts provided!');
+        addMessage('agent', 'No loan accounts found. Please contact support.');
         return;
     }
     
@@ -205,36 +206,71 @@ function showLoanAccounts(accounts) {
     
     if (!container || !grid) {
         console.error('showLoanAccounts: Container or grid not found!');
+        console.error('Container exists:', !!container, 'Grid exists:', !!grid);
         return;
     }
     
+    // Clear grid first
     grid.innerHTML = '';
     
+    // Process and add accounts
+    let cardsAdded = 0;
     accounts.forEach((account, index) => {
         console.log(`Processing account ${index}:`, account);
         
-        if (!account.loan_account_id) {
-            console.warn(`Skipping account ${index} - missing loan_account_id:`, account);
+        // Support multiple field name formats
+        const loanAccountId = account.loan_account_id || account.accountNumber || account.account_id || account.id;
+        
+        if (!loanAccountId) {
+            console.warn(`Skipping account ${index} - missing ID:`, account);
             return;
         }
         
         const card = document.createElement('div');
         card.className = 'loan-account-card';
-        card.onclick = () => selectAccount(account.loan_account_id);
+        card.onclick = () => {
+            console.log('Account card clicked:', loanAccountId);
+            selectAccount(loanAccountId);
+        };
+        
+        const typeOfLoan = account.type_of_loan || account.accountType || account.type || 'Unknown Loan';
+        const tenure = account.tenure || account.tenure_years || account.duration || 'N/A';
         
         card.innerHTML = `
-            <h4>${account.type_of_loan || 'N/A'}</h4>
-            <p>Tenure: ${account.tenure || 'N/A'}</p>
-            <div class="loan-account-id">${account.loan_account_id}</div>
+            <h4>${typeOfLoan}</h4>
+            <p>Tenure: ${tenure}</p>
+            <div class="loan-account-id">${loanAccountId}</div>
         `;
         
         grid.appendChild(card);
-        console.log(`Added account card ${index}: ${account.type_of_loan}`);
+        cardsAdded++;
+        console.log(`Added account card ${index}: ${typeOfLoan} (${loanAccountId})`);
     });
     
-    console.log('Total cards added:', grid.children.length);
+    console.log('Total cards added:', cardsAdded, 'out of', accounts.length);
+    
+    if (cardsAdded === 0) {
+        console.error('No valid account cards were created!');
+        addMessage('agent', 'Unable to display loan accounts. Please contact support.');
+        return;
+    }
+    
+    // Show container AFTER adding all cards
     container.style.display = 'block';
+    console.log('Loan accounts container displayed');
+    
+    // Force a reflow to ensure visibility
+    container.offsetHeight;
+    
     scrollToBottom();
+    
+    // Double-check visibility after a short delay
+    setTimeout(() => {
+        if (container.style.display === 'none') {
+            console.warn('Container was hidden after display! Re-showing...');
+            container.style.display = 'block';
+        }
+    }, 100);
 }
 
 // Select account
