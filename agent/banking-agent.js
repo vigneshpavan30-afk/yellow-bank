@@ -528,14 +528,29 @@ class BankingAgent {
     const normalizedUserOTP = String(userOTP).trim();
     const normalizedGeneratedOTP = String(generatedOTP || '').trim();
     
+    console.log('verifyOTP called:', { 
+      userOTP: normalizedUserOTP, 
+      generatedOTP: normalizedGeneratedOTP,
+      userLength: normalizedUserOTP.length,
+      generatedLength: normalizedGeneratedOTP.length
+    });
+    
     // If we have a generated OTP from the API, compare with it
     if (normalizedGeneratedOTP) {
-      return normalizedUserOTP === normalizedGeneratedOTP;
+      const match = normalizedUserOTP === normalizedGeneratedOTP;
+      console.log('OTP comparison result:', match, {
+        userOTP: normalizedUserOTP,
+        generatedOTP: normalizedGeneratedOTP,
+        exactMatch: normalizedUserOTP === normalizedGeneratedOTP
+      });
+      return match;
     }
     
     // Fallback: Check against known valid OTPs (for backward compatibility)
     const validOTPs = ["1234", "5678", "7889", "1209"];
-    return validOTPs.includes(normalizedUserOTP);
+    const fallbackMatch = validOTPs.includes(normalizedUserOTP);
+    console.log('Fallback OTP check:', fallbackMatch, { validOTPs });
+    return fallbackMatch;
   }
 
   /**
