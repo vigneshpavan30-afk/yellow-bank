@@ -109,7 +109,11 @@ module.exports = async (req, res) => {
       
       // Restore state if provided (for stateless serverless functions)
       if (data.state) {
+        console.log('Restoring state:', JSON.stringify(data.state, null, 2));
         agent.setState(data.state);
+        console.log('State after restore - otpValue:', agent.getState().otpValue);
+      } else {
+        console.log('No state provided in request');
       }
       
       // Process message with error handling
