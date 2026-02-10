@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Yellow Bank - AI Banking Agent Implementation Guide
 
 ## Overview
@@ -351,7 +350,7 @@ This is a project implementation guide for Yellow Bank's AI Banking Agent.
 ---
 
 **Note**: This is a comprehensive implementation guide. Follow each document in sequence for best results. Start with mock API setup, then configure the banking agent, followed by CSAT agent, and finally implement token optimization.
-=======
-# yellow-bank
-it is a bank agent
->>>>>>> a6d5d7b964765b47e4321ff19b326f45d363f38c
+
+## About
+
+This is a bank agent that helps users check their bank account details.
