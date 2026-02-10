@@ -18,9 +18,18 @@ process.env.API_BASE_URL = API_BASE_URL;
 
 // Initialize agent (singleton)
 let agent;
-if (!agent) {
-  agent = new BankingAgent();
-  agent.apiBaseUrl = API_BASE_URL;
+
+function getAgent() {
+  if (!agent) {
+    try {
+      agent = new BankingAgent();
+      agent.apiBaseUrl = API_BASE_URL;
+    } catch (error) {
+      console.error('Error initializing agent:', error);
+      throw error;
+    }
+  }
+  return agent;
 }
 
 // MIME types
@@ -76,12 +85,22 @@ module.exports = async (req, res) => {
         throw new Error('Missing message in request body');
       }
       
+      // Get or create agent instance
+      const agent = getAgent();
+      
       // Restore state if provided (for stateless serverless functions)
       if (data.state) {
         agent.setState(data.state);
       }
       
-      const response = await agent.processMessage(data.message);
+      // Process message with error handling
+      let response;
+      try {
+        response = await agent.processMessage(data.message);
+      } catch (error) {
+        console.error('Error processing message:', error);
+        throw error;
+      }
       
       // Get updated state after processing
       const updatedState = agent.getState();
@@ -92,6 +111,7 @@ module.exports = async (req, res) => {
       });
     } catch (error) {
       console.error('Chat error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         message: 'I apologize, but I encountered a technical issue. Please try again.',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -126,16 +146,29 @@ module.exports = async (req, res) => {
         throw new Error('Missing accountId in request body');
       }
       
+      // Get or create agent instance
+      const agent = getAgent();
+      
       // Restore state if provided (for stateless serverless functions)
       if (data.state) {
         agent.setState(data.state);
       }
       
-      const response = await agent.processMessage(data.accountId);
+      // Process account selection with error handling
+      let response;
+      try {
+        response = await agent.processMessage(data.accountId);
+      } catch (error) {
+        console.error('Error processing account selection:', error);
+        throw error;
+      }
+      
+      // Get updated state after processing
+      const updatedState = agent.getState();
       
       res.status(200).json({
         ...response,
-        state: agent.getState()
+        state: updatedState
       });
     } catch (error) {
       console.error('Select account error:', error);
@@ -148,6 +181,7 @@ module.exports = async (req, res) => {
   }
 
   if ((pathname === '/api/reset' || pathname === '/reset') && method === 'POST') {
+    const agent = getAgent();
     agent.reset();
     res.status(200).json({ message: 'Agent reset successfully' });
     return;
