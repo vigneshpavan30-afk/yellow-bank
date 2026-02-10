@@ -9,7 +9,7 @@ const url = require('url');
 const PORT = 3001;
 
 // API Key for authentication
-const API_KEY = process.env.YB_API_KEY || 'AIzaSyC-nRiKZIbOa8iNoPfkePqiSnE8mAlChiY';
+const API_KEY = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
 
 // Mock data
 const mockOTPs = ['1234', '5678', '7889', '1209'];

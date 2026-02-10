@@ -9,7 +9,7 @@ const BankingAgent = require('./banking-agent');
 // Use local mock server
 process.env.API_BASE_URL = 'http://localhost:3001';
 // Set API key for testing (replace with your actual key)
-process.env.YB_API_KEY = process.env.YB_API_KEY || 'AIzaSyC-nRiKZIbOa8iNoPfkePqiSnE8mAlChiY';
+process.env.YB_API_KEY = process.env.YB_API_KEY || 'AIzaSyCSmKNYSnZ6raJ7SFYnXjrsiyXrl6LMc7Q';
 
 const agent = new BankingAgent();
 
